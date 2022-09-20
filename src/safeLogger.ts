@@ -3,8 +3,7 @@ import { Unleash } from "unleash-client";
 import { getUpdatedLogLevel } from "./getUpdatedLogLevel";
 const { combine, errors, timestamp, splat, json } = winston.format;
 
-export interface SafeLoggerConfig {
-  unleash: Unleash;
+export interface UnleashConfig {
   flagName: string;
   baseUrl: string;
   globalLogLevelKey: string;
@@ -20,17 +19,22 @@ export class SafeLogger {
 
   logger: winston.Logger;
 
-  constructor({
-    unleash,
-    flagName,
-    baseUrl,
-    globalLogLevelKey,
-    defaultVariantName,
-  }: SafeLoggerConfig) {
+  constructor() {
     this.logger = this.createLogger();
     // default log level is "info"
     this.defaultLogLevel = "info";
     this.currentLogLevel = this.defaultLogLevel;
+  }
+
+  /**
+   * Method to be used to configure unleash client to provide the ability to configure log levels dynamically using feature flags
+   * @param unleash
+   * @param config
+   */
+  use(
+    unleash: Unleash,
+    { flagName, baseUrl, globalLogLevelKey, defaultVariantName }: UnleashConfig
+  ) {
     this.unleash = unleash;
 
     /**
@@ -67,8 +71,6 @@ export class SafeLogger {
       });
     });
   }
-
-  use(unleash: Unleash) {}
 
   private createLogger(): winston.Logger {
     return winston.createLogger({
